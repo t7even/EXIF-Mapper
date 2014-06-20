@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Get Coordinates</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300' rel='stylesheet' type='text/css'>
+    <style>
+      html, body {height: 100%; margin: 0; padding: 0; }
+      #map-canvas, #map_canvas {height: 100%; }
+      *, *:before, *:after {-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
+      @media print {
+        html, body {height: auto; }
+        #map-canvas, #map_canvas {height: 650px; }
+      }
+      #panel {position: absolute; top: 20px; left: 50%; margin-left: -250px; z-index: 5; background-color: #fff; border: 1px solid #999; width:500px;max-width:100%;height:50px;}
+      #file {position: absolute; bottom: 20px; left: 50%; margin-left: -250px; z-index: 5; background-color: #fff; border: 1px solid #999; width:500px;max-width:100%;height:50px;}
+      #panel input, #file input{height:100%;width:100%;padding:10px;border:0;font-family: 'Source Sans Pro', sans-serif;font-size:20px;color:#000;text-align: center;}
+      #file input{font-size:25px;}
+      #file_draggable {position: absolute; right:0; top: 10px; z-index: 6; width:0; height:0; border: 15px solid rgba(0,0,0,0); border-left-color: #ccc;}
+      .pac-container{font-family: 'Source Sans Pro', sans-serif; font-size: 16px; color: #000; padding: 5px;} 
+      .pac-item{padding:3px 2px;overflow:hidden;} 
+      .pac-item:hover,.pac-selected{background:rgba(50,130,255,.3);} 
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3&amp;sensor=false&amp;libraries=places,geometry"></script>
+    <script>
+      google.maps.visualRefresh = true;
+      var map,cmarker,hmarker,poly;
+      function feedFilename(lat,lng,hdg) {
+        var lat = Math.round(lat * 10000) / 10000;
+        var lng = Math.round(lng * 10000) / 10000;
+        var hdg = Math.round(hdg * 1);
+        document.getElementById("filename").value = lat + ',' + lng + ',' + hdg + '.gps';
+        document.getElementById("file_draggable").href = lat + ',' + lng + ',' + hdg + '.gps';
+        document.getElementById("file_draggable").setAttribute("data-downloadurl",'application/gps:' + lat + ',' + lng + ',' + hdg + '.gps:http://businesspano.com/dummy');
+      }
+      function setHMarker(latlng,offsetx,offsety) {
+        var scale = Math.pow(2, map.getZoom());
+        var cmarkerPos = map.getProjection().fromLatLngToPoint(latlng);
+        var pixelOffset = new google.maps.Point((0/scale),(-70/scale));
+        var hmarkerPos = new google.maps.Point(cmarkerPos.x - pixelOffset.x, cmarkerPos.y + pixelOffset.y);
+        var hmarkerLatLng = map.getProjection().fromPointToLatLng(hmarkerPos);
+        hmarker.setPosition(hmarkerLatLng);
+      }
+      function update(obj) {
+        var path = [cmarker.getPosition(), hmarker.getPosition()];
+        poly.setPath(path);
+        var heading = google.maps.geometry.spherical.computeHeading(path[0],path[1]);
+        if(heading < 0) heading = 360 + heading;
+        feedFilename(cmarker.getPosition().lat(),cmarker.getPosition().lng(),heading);
+      }
+      function initialize() {
+        var mapOptions = {zoom: 6, center: new google.maps.LatLng(51.329219337279405, 10.454119349999944), mapTypeId: google.maps.MapTypeId.HYBRID, disableDefaultUI: true , tilt: 0};
+        map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+        var input = /** @type {HTMLInputElement} */(document.getElementById('searchTextField'));
+        var autocomplete = new google.maps.places.Autocomplete(input);
+        autocomplete.bindTo('bounds', map);
+        var icon1 = {path:google.maps.SymbolPath.CIRCLE,scale:7,strokeWeight:2,strokeColor:'#d66',fillColor:'red',fillOpacity:.5}, icon2 = {path:google.maps.SymbolPath.CIRCLE,scale:5,strokeWeight:2,strokeColor:'#6d6',fillColor:'green',fillOpacity:.5};
+        cmarker = new google.maps.Marker({map: map, draggable: true, position: map.getCenter(), icon: icon1, crossOnDrag: false});
+        hmarker = new google.maps.Marker({map: map, draggable: true, icon: icon2, crossOnDrag: false});
+        var polyOptions = {strokeColor: '#999', strokeOpacity: 1, strokeWeight: 2, map: map};
+        poly = new google.maps.Polyline(polyOptions);
+        google.maps.event.addListener(map, 'idle', function() {if(typeof hmarker.getPosition() === 'undefined') setHMarker(cmarker.getPosition());update()});
+        google.maps.event.addListener(cmarker, 'drag', function(event) {setHMarker(cmarker.getPosition());update()});
+        google.maps.event.addListener(hmarker, 'drag', function(event) {update()});
+        google.maps.event.addListener(autocomplete, 'place_changed', function() {
+          cmarker.setVisible(false);
+          input.className = '';
+          var place = autocomplete.getPlace();
+          if (!place.geometry) {input.className = 'notfound'; return;}
+          if (place.geometry.viewport) {map.fitBounds(place.geometry.viewport);} else {map.setCenter(place.geometry.location);map.setZoom(17); }
+          feedFilename(place.geometry.location.lat(),place.geometry.location.lng(),0.58);
+          cmarker.setPosition(place.geometry.location);
+          cmarker.setVisible(true);
+          setHMarker(cmarker.getPosition());
+          update();
+        });
+
+        document.getElementById("file_draggable").addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('DownloadURL', this.dataset.downloadurl);
+        }, false);
+      }
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+  </head>
+  <body>
+    <div id="panel">
+      <input id="searchTextField" type="text" size="50">
+    </div>
+    <div id="file">
+      <input id="filename" type="text" size="50" value=".gps">
+      <a id ="file_draggable" href="#" class="dragout" draggable="true" data-downloadurl="application/gps:51.3292,10.4541,0.gps:http://businesspano.com/dummy"></a>
+    </div>
+    <div id="map-canvas"></div>
+  </body>
+</html>
