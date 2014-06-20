@@ -58,7 +58,7 @@
         var icon1 = {path:google.maps.SymbolPath.CIRCLE,scale:7,strokeWeight:2,strokeColor:'#d66',fillColor:'red',fillOpacity:.5}, icon2 = {path:google.maps.SymbolPath.CIRCLE,scale:5,strokeWeight:2,strokeColor:'#6d6',fillColor:'green',fillOpacity:.5};
         cmarker = new google.maps.Marker({map: map, draggable: true, position: map.getCenter(), icon: icon1, crossOnDrag: false});
         hmarker = new google.maps.Marker({map: map, draggable: true, icon: icon2, crossOnDrag: false});
-        var polyOptions = {strokeColor: '#999', strokeOpacity: 1, strokeWeight: 2, map: map};
+        var polyOptions = {strokeColor: '#fff', strokeOpacity: 1, strokeWeight: 2, map: map};
         poly = new google.maps.Polyline(polyOptions);
         google.maps.event.addListener(map, 'idle', function() {if(typeof hmarker.getPosition() === 'undefined') setHMarker(cmarker.getPosition());update()});
         google.maps.event.addListener(cmarker, 'drag', function(event) {setHMarker(cmarker.getPosition());update()});
