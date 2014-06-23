@@ -9,15 +9,11 @@
       html, body {height: 100%; margin: 0; padding: 0; }
       #map-canvas, #map_canvas {height: 100%; }
       *, *:before, *:after {-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
-      @media print {
-        html, body {height: auto; }
-        #map-canvas, #map_canvas {height: 650px; }
-      }
-      #panel {position: absolute; top: 20px; left: 50%; margin-left: -250px; z-index: 5; background-color: #fff; border: 1px solid #999; width:500px;max-width:100%;height:50px;}
-      #file {position: absolute; bottom: 20px; left: 50%; margin-left: -250px; z-index: 5; background-color: #fff; border: 1px solid #999; width:500px;max-width:100%;height:50px;}
-      #panel input, #file input{height:100%;width:100%;padding:10px;border:0;font-family: 'Source Sans Pro', sans-serif;font-size:20px;color:#000;text-align: center;}
-      #file input{font-size:25px;}
-      #file_draggable {position: absolute; right:0; top: 10px; z-index: 6; width:0; height:0; border: 15px solid rgba(0,0,0,0); border-left-color: #ccc;}
+      @media print { html, body {height: auto;} #map-canvas, #map_canvas {height: 650px;} }
+      #panel {position: absolute; top: 20px; left: 50%; margin-left: -250px; z-index: 5; background-color: #fff; border: 1px solid #999; width: 500px; max-width: 100%; height: 50px;}
+      #file {position: absolute; bottom: 20px; left: 50%; margin-left: -250px; z-index: 5; background-color: #fff; border: 1px solid #999; width: 500px; max-width: 100%; height: 50px;}
+      #panel input, #filename{height: 100%; width: 100%; padding: 10px; border: 0; font-family: 'Source Sans Pro', sans-serif; font-size: 20px; color: #000; text-align: center;}
+      #filename{display: inline-block; font-size: 25px; text-decoration: none;}
       .pac-container{font-family: 'Source Sans Pro', sans-serif; font-size: 16px; color: #000; padding: 5px;} 
       .pac-item{padding:3px 2px;overflow:hidden;} 
       .pac-item:hover,.pac-selected{background:rgba(50,130,255,.3);} 
@@ -30,9 +26,10 @@
         var lat = Math.round(lat * 10000) / 10000;
         var lng = Math.round(lng * 10000) / 10000;
         var hdg = Math.round(hdg * 1);
-        document.getElementById("filename").value = lat + ',' + lng + ',' + hdg + '.gps';
-        document.getElementById("file_draggable").href = lat + ',' + lng + ',' + hdg + '.gps';
-        document.getElementById("file_draggable").setAttribute("data-downloadurl",'application/gps:' + lat + ',' + lng + ',' + hdg + '.gps:http://businesspano.com/dummy');
+        var filename = document.getElementById("filename");
+        filename.innerHTML = lat + ',' + lng + ',' + hdg + '.gps';
+        filename.href = lat + ',' + lng + ',' + hdg + '.gps';
+        filename.setAttribute("data-downloadurl",'application/gps:' + lat + ',' + lng + ',' + hdg + '.gps:http://businesspano.com/dummy');
       }
       function setHMarker(latlng,offsetx,offsety) {
         var scale = Math.pow(2, map.getZoom());
@@ -76,7 +73,7 @@
           update();
         });
 
-        document.getElementById("file_draggable").addEventListener('dragstart', function(e) {
+        document.getElementById("filename").addEventListener('dragstart', function(e) {
             e.dataTransfer.setData('DownloadURL', this.dataset.downloadurl);
         }, false);
       }
@@ -88,8 +85,7 @@
       <input id="searchTextField" type="text" size="50">
     </div>
     <div id="file">
-      <input id="filename" type="text" size="50" value=".gps">
-      <a id ="file_draggable" href="#" class="dragout" draggable="true" data-downloadurl="application/gps:51.3292,10.4541,0.gps:http://businesspano.com/dummy"></a>
+      <a id ="filename" href="#" class="dragout" draggable="true" data-downloadurl="application/gps:51.3292,10.4541,0.gps:http://businesspano.com/dummy">.gps</a>
     </div>
     <div id="map-canvas"></div>
   </body>
